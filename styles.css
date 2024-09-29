@@ -18,7 +18,7 @@ header {
 .project-list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center; /* Center the cards */
+    justify-content: flex-start; /* Center the cards */
     gap: 20px;
 }
 
@@ -62,4 +62,9 @@ header {
 
 .link:hover {
     color: rgb(220, 120, 30); /* Darker shade on hover */
+}
+
+/* Add gap below the Starred Projects section */
+.starred-projects {
+    margin-bottom: 20px; /* Adjust the value as needed */
 }
