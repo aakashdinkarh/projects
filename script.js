@@ -34,6 +34,22 @@ const snakeCaseToTitleCase = (string) => {
 	}
 };
 
+const getCurrentAppliedTags = () => {
+	const params = new URLSearchParams(window.location.search);
+	const appliedTags = decodeURIComponent(params.get('tags') || '').split(',').filter(Boolean);
+	return appliedTags;
+}
+
+const setCurrentAppliedTags = (appliedTags) => {
+	if (!appliedTags?.length) {
+		window.history.replaceState({}, '', `${window.location.pathname}`);
+		return;
+	}
+	const params = new URLSearchParams(window.location.search);
+	params.set('tags', encodeURIComponent(appliedTags.join(',')));
+	window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+}
+
 const getProjectCard = (projectTitle, projectDescription, projectLinks) => {
 	const projectCardElement = getElement('div', 'project-card');
 	const projectTitleElement = getElement('h2', 'project-title', projectTitle);
@@ -55,15 +71,42 @@ async function getProjectDetails() {
 	}
 }
 
-async function renderProjectDetails() {
-	const data = await getProjectDetails();
+const getFilteredData = (data, appliedTags = []) => {
+	const newData = {};
 
+	const isAppliedTagsEmpty = appliedTags.length === 0;
+
+	Object.keys(data).map((key) => {
+		newData[key] = [];
+
+		const projectDetails = data[key];
+		projectDetails.forEach((projectDetail) => {
+			if (projectDetail.hidden) return;
+
+			const isAppliedTagExistInProject = isAppliedTagsEmpty || appliedTags.every((tag) => projectDetail.tags?.includes(tag));
+			if(!isAppliedTagExistInProject) return;
+
+			newData[key].push(projectDetail);
+		})
+
+	})
+
+	return newData;
+}
+
+function renderData(data) {
 	const renderDataElements = Object.keys(data).map((key) => {
 		const fragment = document.createDocumentFragment();
 		const sectionTitle = snakeCaseToTitleCase(key);
 		const sectionTitleElement = getElement('h2', null, sectionTitle);
 		const projectListElement = getElement('div', 'project-list');
-		const projectCards = data[key].map((projectDetails) =>
+
+		if (!data[key].length) {
+			fragment.append(sectionTitleElement, getElement('i', 'no-results', 'No results here for applied filters. Try removing some filters'));
+			return fragment;
+		}
+
+		const projectCards = data[key].map((projectDetails) => 
 			getProjectCard(projectDetails.title, projectDetails.description, projectDetails.links)
 		);
 		projectListElement.append(...projectCards);
@@ -74,8 +117,27 @@ async function renderProjectDetails() {
 
 	const mainElement = document.getElementsByTagName('main')?.[0];
 	if (mainElement) {
-		mainElement.append(...renderDataElements);
+		mainElement.replaceChildren(...renderDataElements);
 	}
 }
 
-renderProjectDetails();
+function renderFilteredData(appliedTags) {
+	const filteredData = getFilteredData(window.__projectsData__, appliedTags);
+
+	renderData(filteredData);
+}
+
+async function initProjectDetails() {
+	const data = await getProjectDetails();
+	const allProjects = Object.keys(data).flatMap((key) => data[key]);
+
+	window.__projectsData__ = data;
+	window.__uniqueTags__ = [...new Set(allProjects.flatMap(project => project.tags))];
+
+	renderFilterTags();
+
+	const appliedTags = getCurrentAppliedTags();
+	renderFilteredData(appliedTags);
+}
+
+initProjectDetails();
