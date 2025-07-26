@@ -28,9 +28,7 @@ const getFilterTagElements = (uniqueTags = []) => {
 	return tags;
 };
 
-function renderFilterTags() {
-	const uniqueTags = window.__uniqueTags__;
-
+function renderFilterTags(uniqueTags) {
 	const filterTagElements = getFilterTagElements(uniqueTags);
 
 	if (filterTagElements.length) {

@@ -121,8 +121,9 @@ function renderData(data) {
 	}
 }
 
+let projectsData = {};
 function renderFilteredData(appliedTags) {
-	const filteredData = getFilteredData(window.__projectsData__, appliedTags);
+	const filteredData = getFilteredData(projectsData, appliedTags);
 
 	renderData(filteredData);
 }
@@ -131,10 +132,9 @@ async function initProjectDetails() {
 	const data = await getProjectDetails();
 	const allProjects = Object.keys(data).flatMap((key) => data[key]);
 
-	window.__projectsData__ = data;
-	window.__uniqueTags__ = [...new Set(allProjects.flatMap(project => project.tags))];
-
-	renderFilterTags();
+	projectsData = data;
+	const uniqueTags = [...new Set(allProjects.flatMap(project => project.tags))];
+	renderFilterTags(uniqueTags);
 
 	const appliedTags = getCurrentAppliedTags();
 	renderFilteredData(appliedTags);
