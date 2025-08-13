@@ -1,0 +1,67 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project (production)
+        run: npm run build:prod
+
+      - name: Deploy to remote-build branch
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Create or switch to remote-build branch
+          git checkout --orphan remote-build || git checkout remote-build
+
+          # Remove all files except .git
+          git rm -rf . || true
+
+          # Copy only the built files from dist to root
+          cp dist/index.html .
+          cp dist/bundle.js .
+
+          # Add only the built files
+          git add index.html bundle.js
+
+          # Commit and push
+          git commit -m "Build from ${{ github.sha }}"
+          git push origin remote-build --force
+
+      - name: Show build info
+        run: |
+          echo "✅ Build completed successfully!"
+          echo "📁 Production build created in: dist/"
+          echo ""
+          echo "📋 Built files:"
+          echo "   - index.html (single HTML file with everything included)"
+          echo "   - bundle.js (bundled JavaScript)"
+          echo ""
+          echo "🚀 Deployment:"
+          echo "   ✅ Built files pushed to remote-build branch"
+          echo "   📁 Branch: remote-build"
+          echo ""
+          echo "🧪 To test locally:"
+          echo "   npm run dev"
