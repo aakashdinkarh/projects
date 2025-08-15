@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build:
@@ -30,28 +31,35 @@ jobs:
       - name: Build project (production)
         run: npm run build:prod
 
-      - name: Deploy to remote-build branch
-        run: |
-          # Configure git
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: remote-build-update
+          base: remote-build
+          title: "Update production build from ${{ github.sha }}"
+          body: |
+            🤖 Automated build update
 
-          # Create or switch to remote-build branch
-          git checkout --orphan remote-build || git checkout remote-build
+            This PR updates the production build files:
+            - `index.html` - Single HTML file with everything included
+            - `bundle.js` - Bundled JavaScript
 
-          # Remove all files except .git
-          git rm -rf . || true
+            **Build Details:**
+            - Source commit: ${{ github.sha }}
+            - Triggered by: ${{ github.event_name }}
+            - Build timestamp: ${{ github.event.head_commit.timestamp }}
 
-          # Copy only the built files from dist to root
-          cp dist/index.html .
-          cp dist/bundle.js .
+            **Files Changed:**
+            - Production build files from `dist/` directory
 
-          # Add only the built files
-          git add index.html bundle.js
-
-          # Commit and push
-          git commit -m "Build from ${{ github.sha }}"
-          git push origin remote-build --force
+            Please review and merge to update the remote-build branch.
+          commit-message: "Update production build from ${{ github.sha }}"
+          delete-branch: true
+          path: |
+            dist/
+          committer: GitHub <noreply@github.com>
+          author: GitHub <noreply@github.com>
 
       - name: Show build info
         run: |
@@ -63,8 +71,9 @@ jobs:
           echo "   - bundle.js (bundled JavaScript)"
           echo ""
           echo "🚀 Deployment:"
-          echo "   ✅ Built files pushed to remote-build branch"
-          echo "   📁 Branch: remote-build"
+          echo "   ✅ Pull request created for remote-build branch"
+          echo "   📁 Source branch: remote-build-update"
+          echo "   📁 Target branch: remote-build"
           echo ""
           echo "🧪 To test locally:"
           echo "   npm run dev"
