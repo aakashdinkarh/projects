@@ -31,6 +31,19 @@ jobs:
       - name: Build project (production)
         run: npm run build:prod
 
+      - name: Prepare files for PR
+        run: |
+          # Create a temporary directory for the PR
+          mkdir -p temp-pr
+
+          # Copy only the built files from dist to temp directory
+          cp dist/index.html temp-pr/
+          cp dist/bundle.js temp-pr/
+
+          # Move the files to root for the PR
+          mv temp-pr/* .
+          rmdir temp-pr
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
@@ -56,8 +69,6 @@ jobs:
             Please review and merge to update the remote-build branch.
           commit-message: "Update production build from ${{ github.sha }}"
           delete-branch: true
-          path: |
-            dist/
           committer: GitHub <noreply@github.com>
           author: GitHub <noreply@github.com>
 
