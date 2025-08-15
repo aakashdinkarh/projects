@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   build:
@@ -31,50 +30,28 @@ jobs:
       - name: Build project (production)
         run: npm run build:prod
 
-      - name: Prepare files for PR
+      - name: Deploy to remote-build branch
         run: |
-          # Create a temporary directory for the PR
-          mkdir -p temp-pr
+          # Configure git
+          git config --local user.email "aakashdinkarh@gmail.com"
+          git config --local user.name "Aakash Dinkar Workflow Bot"
 
-          # Copy only the built files from dist to temp directory
-          cp dist/index.html temp-pr/
-          cp dist/bundle.js temp-pr/
+          # Create or switch to remote-build branch
+          git checkout --orphan remote-build || git checkout remote-build
 
-          # Move the files to root for the PR
-          mv temp-pr/* .
-          rmdir temp-pr
+          # Remove all files except .git
+          git rm -rf . || true
 
-      - name: Create Pull Request to Master
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: build-update-${{ github.sha }}
-          base: master
-          title: "🚀 Production Build Ready for Deployment"
-          body: |
-            🤖 **Production build completed and ready for deployment!**
+          # Copy only the built files from dist to root
+          cp dist/index.html .
+          cp dist/bundle.js .
 
-            This PR contains the latest production build files that need to be deployed to the `remote-build` branch.
+          # Add only the built files
+          git add index.html bundle.js
 
-            **📦 Built Files:**
-            - `index.html` - Single HTML file with everything included
-            - `bundle.js` - Bundled JavaScript
-
-            **🔧 Build Details:**
-            - Source commit: `${{ github.sha }}`
-            - Triggered by: `${{ github.event_name }}`
-            - Build timestamp: `${{ github.event.head_commit.timestamp }}`
-
-            **📋 Next Steps:**
-            1. ✅ Review the build files
-            2. ✅ Merge this PR to master
-            3. 🚀 Manually deploy to `remote-build` branch (since it's protected)
-
-            **💡 Note:** The `remote-build` branch is protected, so deployment requires manual intervention.
-          commit-message: "🚀 Production build ready for deployment from ${{ github.sha }}"
-          delete-branch: true
-          committer: GitHub <noreply@github.com>
-          author: GitHub <noreply@github.com>
+          # Commit and push
+          git commit -m "Build from ${{ github.sha }}"
+          git push https://x-access-token:${{ secrets.FORCE_PUSH_TOKEN }}@github.com/aakashdinkarh/projects.git HEAD:remote-build --force
 
       - name: Show build info
         run: |
@@ -86,13 +63,8 @@ jobs:
           echo "   - bundle.js (bundled JavaScript)"
           echo ""
           echo "🚀 Deployment:"
-          echo "   ✅ Pull request created to master branch"
-          echo "   📁 Source branch: build-update-${{ github.sha }}"
-          echo "   📁 Target branch: master"
-          echo ""
-          echo "📝 Next Steps:"
-          echo "   1. Review and merge the PR to master"
-          echo "   2. Manually deploy to remote-build branch (protected)"
+          echo "   ✅ Built files pushed to remote-build branch"
+          echo "   📁 Branch: remote-build"
           echo ""
           echo "🧪 To test locally:"
           echo "   npm run dev"
