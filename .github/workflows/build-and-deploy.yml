@@ -44,30 +44,34 @@ jobs:
           mv temp-pr/* .
           rmdir temp-pr
 
-      - name: Create Pull Request
+      - name: Create Pull Request to Master
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: remote-build-update
-          base: remote-build
-          title: "Update production build from ${{ github.sha }}"
+          branch: build-update-${{ github.sha }}
+          base: master
+          title: "🚀 Production Build Ready for Deployment"
           body: |
-            🤖 Automated build update
+            🤖 **Production build completed and ready for deployment!**
 
-            This PR updates the production build files:
+            This PR contains the latest production build files that need to be deployed to the `remote-build` branch.
+
+            **📦 Built Files:**
             - `index.html` - Single HTML file with everything included
             - `bundle.js` - Bundled JavaScript
 
-            **Build Details:**
-            - Source commit: ${{ github.sha }}
-            - Triggered by: ${{ github.event_name }}
-            - Build timestamp: ${{ github.event.head_commit.timestamp }}
+            **🔧 Build Details:**
+            - Source commit: `${{ github.sha }}`
+            - Triggered by: `${{ github.event_name }}`
+            - Build timestamp: `${{ github.event.head_commit.timestamp }}`
 
-            **Files Changed:**
-            - Production build files from `dist/` directory
+            **📋 Next Steps:**
+            1. ✅ Review the build files
+            2. ✅ Merge this PR to master
+            3. 🚀 Manually deploy to `remote-build` branch (since it's protected)
 
-            Please review and merge to update the remote-build branch.
-          commit-message: "Update production build from ${{ github.sha }}"
+            **💡 Note:** The `remote-build` branch is protected, so deployment requires manual intervention.
+          commit-message: "🚀 Production build ready for deployment from ${{ github.sha }}"
           delete-branch: true
           committer: GitHub <noreply@github.com>
           author: GitHub <noreply@github.com>
@@ -82,9 +86,13 @@ jobs:
           echo "   - bundle.js (bundled JavaScript)"
           echo ""
           echo "🚀 Deployment:"
-          echo "   ✅ Pull request created for remote-build branch"
-          echo "   📁 Source branch: remote-build-update"
-          echo "   📁 Target branch: remote-build"
+          echo "   ✅ Pull request created to master branch"
+          echo "   📁 Source branch: build-update-${{ github.sha }}"
+          echo "   📁 Target branch: master"
+          echo ""
+          echo "📝 Next Steps:"
+          echo "   1. Review and merge the PR to master"
+          echo "   2. Manually deploy to remote-build branch (protected)"
           echo ""
           echo "🧪 To test locally:"
           echo "   npm run dev"
