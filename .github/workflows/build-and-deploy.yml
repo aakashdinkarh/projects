@@ -41,14 +41,14 @@ jobs:
           # Create or switch to remote-build branch
           git checkout --orphan remote-build || git checkout remote-build
 
-          # Remove all files except .git and service-worker.js
-          git rm -rf . --ignore-unmatch -- ':!service-worker.js'
+          # Remove all files except .git
+          git rm -rf . || true
 
           # Copy only the built files from dist to root
           cp dist/index.html .
           cp dist/bundle.js .
 
-          # Add only the built files & service-worker file.
+          # Add only the built files
           git add index.html bundle.js
 
           # Commit and push
