@@ -47,9 +47,10 @@ jobs:
           # Copy only the built files from dist to root
           cp dist/index.html .
           cp dist/bundle.js .
+          cp service-worker.js .
 
-          # Add only the built files
-          git add index.html bundle.js
+          # Add only the built files & service-worker file.
+          git add index.html bundle.js service-worker.js
 
           # Commit and push
           git commit -m "Build from ${{ github.sha }}"
