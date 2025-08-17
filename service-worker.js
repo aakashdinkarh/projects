@@ -2,8 +2,8 @@ const CACHE_NAME = 'my-projects-cache-v2';
 const CACHE_EXPIRATION_TIME = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 
 const urlsToCache = [
-    '/',
-    '/bundle.js'
+    '/projects/',
+    '/projects/bundle.js'
 ];
 
 // Helper function to store data with a timestamp
