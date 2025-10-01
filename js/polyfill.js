@@ -16,9 +16,9 @@ const genericElementAttributes = {
 
 if (typeof global !== 'undefined' && !global.document) {
   // Create a minimal document object
-  global.document = {    
+  global.document = {
     // createElement - creates a minimal element object
-    createElement: function(tag) {
+    createElement: function (tag) {
       return {
         cached: null,
         tagName: tag.toLowerCase(),
@@ -26,7 +26,7 @@ if (typeof global !== 'undefined' && !global.document) {
         className: '',
         innerText: '',
         ...genericElementAttributes,
-        append: function(...children) {
+        append: function (...children) {
           const childrenToString = children.map(child => child.toString()).join('');
 
           const element = this.toString();
@@ -35,24 +35,24 @@ if (typeof global !== 'undefined' && !global.document) {
           this.cached = element.slice(0, -endTag.length) + childrenToString + endTag;
           return this.cached;
         },
-        replaceChildren: function(...children) {
+        replaceChildren: function (...children) {
           const childrenToString = children.map(child => child.toString()).join('');
           const element = `<${this.tagName}>${childrenToString}</${this.tagName}>`;
           this.cached = element;
           return this.cached;
         },
-        toString: function() {
+        toString: function () {
           if (this.cached) {
             return this.cached;
           }
 
           let element = `<${this.tagName}`;
           if (this.className) {
-            element += ` class=${this.className}`;
+            element += ` class="${this.className}"`;
           }
           Object.keys(genericElementAttributes).forEach(key => {
             if (this[key]) {
-              element += ` ${key}=${this[key]}`;
+              element += ` ${key}="${this[key]}"`;
             }
           });
           if (tagsWithSelfEnclosing.includes(this.tagName)) {
@@ -72,19 +72,19 @@ if (typeof global !== 'undefined' && !global.document) {
         }
       };
     },
-    
+
     // createDocumentFragment - creates a minimal fragment
-    createDocumentFragment: function() {
+    createDocumentFragment: function () {
       return {
         cached: null,
-        append: function(...children) {
+        append: function (...children) {
           const childrenToString = children.map(child => child.toString()).join('');
           const element = this.toString();
 
           this.cached = element + childrenToString;
           return this.cached;
         },
-        toString: function() {
+        toString: function () {
           if (this.cached) {
             return this.cached;
           }
@@ -93,9 +93,9 @@ if (typeof global !== 'undefined' && !global.document) {
         }
       };
     },
-    
+
     // getElementsByTagName - returns empty array
-    getElementsByTagName: function(tag) {
+    getElementsByTagName: function (tag) {
       return [this.createElement(tag)];
     }
   };
